@@ -1,0 +1,9 @@
+*.bak
+
+# ignore Quartus II generated folders
+db/
+output_files
+incremental_db/
+simulation/
+timing/
+testbench/
