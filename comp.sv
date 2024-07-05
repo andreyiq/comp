@@ -1,18 +1,67 @@
 module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0] digs);
 	parameter CLICK_COUNT = 32'd2500000;
 	parameter INC_COUNT = 32'd25000000;
+	typedef enum logic[1:0] { STATE_A, STATE_COMMAND, STATE_B, STATE_EQUAL} statetype;
+	typedef enum logic { C_ADD, C_SUB } commandtype;
 	
+	logic[3:0] a, b;
+	commandtype command = C_ADD;
+	statetype state = STATE_A;
+
 	logic[3:0] value;
-	logic[31:0] count;
-	logic on_click;
-	
-	button(sys_clk, buttons[1], on_click);
-	
-	always@(posedge on_click)
-		if (value > 4'd8)
-			value <= 4'd0;
-		else
-			value <= value + 4'd1;
+	logic on_click_inc, on_click_state;
+
+	button(sys_clk, buttons[0], on_click_state);
+
+	always @(posedge on_click_state)
+		case (state)
+			STATE_A: 		state <= STATE_COMMAND;
+			STATE_COMMAND: state <= STATE_B;
+			STATE_B:			state <= STATE_EQUAL;
+			STATE_EQUAL:	state <= STATE_A;
+			default:			state <= STATE_A;
+		endcase
+
+	button(sys_clk, buttons[1], on_click_inc);
+
+	always @(posedge on_click_inc)
+		case (state)
+			STATE_A:
+				if (a > 4'd8)
+					a <= 4'd0;
+				else
+					a <= a + 4'd1;
+
+			STATE_COMMAND:
+				case (command)
+					C_ADD: 	command <= C_SUB;
+					default:	command <= C_ADD;
+				endcase
+
+			STATE_B:
+				if (b > 4'd8)
+					b <= 4'd0;
+				else
+					b <= b + 4'd1;
+		endcase
+
+	always
+		case (state)
+			STATE_A:
+				value <= a;
+
+			STATE_COMMAND:
+				value <= { 3'd0, command };
+
+			STATE_B:
+				value <= b;
+
+			STATE_EQUAL:
+				case (command)
+					C_ADD:	value <= a + b;
+					C_SUB:	value <= a - b;
+				endcase
+		endcase
 
 	sevenseg(value, segs);
 	assign digs = 'b001;
