@@ -1,14 +1,16 @@
+`include "consts.sv"
+
 module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0] digs);
 	parameter CLICK_COUNT = 32'd2500000;
 	parameter INC_COUNT = 32'd25000000;
 	typedef enum logic[1:0] { STATE_A, STATE_COMMAND, STATE_B, STATE_EQUAL} statetype;
-	typedef enum logic { C_ADD, C_SUB } commandtype;
 	
 	logic[3:0] a, b;
-	commandtype command = C_ADD;
+	logic[4:0] command = `F_ADD;
 	statetype state = STATE_A;
 
 	logic[3:0] value;
+	logic[3:0] result;
 	logic on_click_inc, on_click_state;
 
 	button(sys_clk, buttons[0], on_click_state);
@@ -34,8 +36,8 @@ module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0
 
 			STATE_COMMAND:
 				case (command)
-					C_ADD: 	command <= C_SUB;
-					default:	command <= C_ADD;
+					`F_ADD: 	command <= `F_SUB;
+					default:	command <= `F_ADD;
 				endcase
 
 			STATE_B:
@@ -44,6 +46,8 @@ module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0
 				else
 					b <= b + 4'd1;
 		endcase
+
+	alu(command, a, b, result);
 
 	always
 		case (state)
@@ -57,10 +61,7 @@ module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0
 				value <= b;
 
 			STATE_EQUAL:
-				case (command)
-					C_ADD:	value <= a + b;
-					C_SUB:	value <= a - b;
-				endcase
+				value <= result;
 		endcase
 
 	sevenseg(value, segs);
