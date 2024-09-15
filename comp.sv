@@ -1,10 +1,47 @@
 `include "consts.sv"
 
 module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0] digs);
-	parameter CLICK_COUNT = 32'd2500000;
+	
+	parameter CLICK_COUNT = 32'd50000000;
+	logic[31:0] clk_count;
+	logic clk_slow;
+	
+	always @(posedge sys_clk)
+	begin
+		clk_count = clk_count + 1;
+		if (clk_count == CLICK_COUNT)
+		begin
+			clk_slow = 1;
+			clk_count = 0;
+		end else
+		begin
+			clk_slow = 0;
+		end
+	end
+
+	
+	
+	parameter N = 8;
+	parameter MEM_SIZE = 8;
+		
+	logic[N-1:0] pc;
+	
+	always @(posedge clk_slow)
+	begin
+		pc = pc + 1;
+		if (pc > MEM_SIZE - 1)
+			pc = 0;
+	end
+	
+	logic[7:0] out;
+	mem(pc, out);
+	
+	sevenseg(out, segs);
+	assign digs = 'b001;
+	
+	/*
 	parameter INC_COUNT = 32'd25000000;
 	typedef enum logic[1:0] { STATE_A, STATE_COMMAND, STATE_B, STATE_EQUAL} statetype;
-	
 	logic[3:0] a, b;
 	logic[4:0] command = `F_ADD;
 	statetype state = STATE_A;
@@ -66,4 +103,5 @@ module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0
 
 	sevenseg(value, segs);
 	assign digs = 'b001;
+	*/
 endmodule

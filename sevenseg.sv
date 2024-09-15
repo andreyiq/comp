@@ -10,6 +10,6 @@ module sevenseg(input[3:0] data, output[7:0] segments);
 			6: 		segments = 8'b10000010;
 			7: 		segments = 8'b11111000;
 			8: 		segments = 8'b10000000;
-			default:	segments = 8'b11111111;
+			default:	segments = 8'b01111111;
 		endcase
 endmodule
