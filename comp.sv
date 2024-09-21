@@ -1,6 +1,6 @@
 `include "consts.sv"
 
-module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0] digs);
+module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output wire[2:0] digs);
 	
 	parameter CLICK_COUNT = 32'd50000000;
 	logic[31:0] clk_count;
@@ -20,20 +20,18 @@ module comp(input sys_clk, input[1:0] buttons, output[7:0] segs, output wire[2:0
 	end
 
 	
-	
-	parameter N = 8;
-	parameter MEM_SIZE = 8;
+	parameter MEM_SIZE = 64;
 		
-	logic[N-1:0] pc;
+	logic[31:0] pc;
 	
 	always @(posedge clk_slow)
 	begin
-		pc = pc + 1;
+		pc = pc + 4;
 		if (pc > MEM_SIZE - 1)
 			pc = 0;
 	end
 	
-	logic[7:0] out;
+	logic[31:0] out;
 	mem(pc, out);
 	
 	sevenseg(out, segs);

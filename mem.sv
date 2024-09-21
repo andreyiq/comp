@@ -1,10 +1,11 @@
 `include "consts.sv"
 
 module mem
-	#(parameter N = 8)
-(input[N-1:0] raddr, output[N-1:0] out);
-
-	logic[7:0] data [0:N-1] = '{8,7,6,5,4,3,2,1};
+(input[31:0] a, output[31:0] rd);
+	logic[31:0] RAM [63:0];
 	
-	assign out = data[raddr];
+	initial
+		$readmemh("riscvtest.txt", RAM);
+
+	assign rd = RAM[a[31:2]]; // word aligned
 endmodule
