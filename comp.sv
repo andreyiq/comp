@@ -5,6 +5,7 @@ module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output
 	parameter CLICK_COUNT = 32'd50000000;
 	logic[31:0] clk_count;
 	logic clk_slow;
+	logic clk_fast;
 	
 	always @(posedge sys_clk)
 	begin
@@ -16,6 +17,14 @@ module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output
 		end else
 		begin
 			clk_slow = 0;
+		end
+		
+		if (clk_count % 32'd100000 == 0)
+		begin
+			clk_fast = 1;
+		end else
+		begin
+			clk_fast = 0;
 		end
 	end
 
@@ -34,8 +43,24 @@ module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output
 	logic[31:0] out;
 	mem(pc, out);
 	
-	sevenseg(out, segs);
-	assign digs = 'b001;
+	initial
+		digs = 'b001;
+	
+	logic[3:0] dig_out;
+	
+	always @(posedge clk_fast)
+	begin
+		if (digs == 'b100)
+			digs = 'b001;
+		else
+			digs = digs << 1;
+		case (digs)
+			'b001: dig_out = out[3:0];
+			'b010: dig_out = out[7:4];
+			'b100: dig_out = out[11:8];
+		endcase
+	end
+	sevenseg(dig_out, segs);
 	
 	/*
 	parameter INC_COUNT = 32'd25000000;
