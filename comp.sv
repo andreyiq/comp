@@ -45,78 +45,20 @@ module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output
 	mem(pc, command);
 	
 	logic[31:0] imm;
-	logic[31:0] rs1;
+	logic[31:0] rs1_data;
+	logic[4:0] rs1_addr;
 	logic[2:0] func3;
-	assign imm = command[31:20];
-	registers(command[19:15], rs1);
+	logic[4:0] rd_addr;
+	logic[6:0] opcode;
+	
+	extend(command[31:20], imm);
+	assign rs1_addr = command[19:15];
 	assign func3 = command[14:12];
-	alu(func3, rs1, imm, result);
+	assign rd_addr = command[11:7];
+	assign opcode = command[6:0];
+
+	registers(sys_clk, 1, rd_addr, rs1_addr, result, rs1_data);
+	alu(func3, rs1_data, imm, result);
 
 	sevenseg(clk_fast, result, segs, digs);
-	
-	/*
-	parameter INC_COUNT = 32'd25000000;
-	typedef enum logic[1:0] { STATE_A, STATE_COMMAND, STATE_B, STATE_EQUAL} statetype;
-	logic[3:0] a, b;
-	logic[4:0] command = `F_ADD;
-	statetype state = STATE_A;
-
-	logic[3:0] value;
-	logic[3:0] result;
-	logic on_click_inc, on_click_state;
-
-	button(sys_clk, buttons[0], on_click_state);
-
-	always @(posedge on_click_state)
-		case (state)
-			STATE_A: 		state <= STATE_COMMAND;
-			STATE_COMMAND: state <= STATE_B;
-			STATE_B:			state <= STATE_EQUAL;
-			STATE_EQUAL:	state <= STATE_A;
-			default:			state <= STATE_A;
-		endcase
-
-	button(sys_clk, buttons[1], on_click_inc);
-
-	always @(posedge on_click_inc)
-		case (state)
-			STATE_A:
-				if (a > 4'd8)
-					a <= 4'd0;
-				else
-					a <= a + 4'd1;
-
-			STATE_COMMAND:
-				case (command)
-					`F_ADD: 	command <= `F_SUB;
-					default:	command <= `F_ADD;
-				endcase
-
-			STATE_B:
-				if (b > 4'd8)
-					b <= 4'd0;
-				else
-					b <= b + 4'd1;
-		endcase
-
-	alu(command, a, b, result);
-
-	always
-		case (state)
-			STATE_A:
-				value <= a;
-
-			STATE_COMMAND:
-				value <= { 3'd0, command };
-
-			STATE_B:
-				value <= b;
-
-			STATE_EQUAL:
-				value <= result;
-		endcase
-
-	sevenseg(value, segs);
-	assign digs = 'b001;
-	*/
 endmodule
