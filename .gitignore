@@ -1,4 +1,6 @@
 *.bak
+*.bin
+*.o
 
 # ignore Quartus II generated folders
 db/
