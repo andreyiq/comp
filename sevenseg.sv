@@ -1,6 +1,24 @@
-module sevenseg(input[3:0] data, output[7:0] segments);
+module sevenseg(input clk, input[31:0] data, output[7:0] segments, output[2:0] digs);
+	initial
+		digs = 'b001;
+	
+	logic[3:0] seg;
+	
+	always @(posedge clk)
+	begin
+		if (digs == 'b100)
+			digs = 'b001;
+		else
+			digs = digs << 1;
+		case (digs)
+			'b001: seg = data[3:0];
+			'b010: seg = data[7:4];
+			'b100: seg = data[11:8];
+		endcase
+	end
+	
 	always_comb
-		case (data)
+		case (seg)
 			0: 		segments = 8'b11000000;
 			1: 		segments = 8'b11111001;
 			2: 		segments = 8'b10100100;

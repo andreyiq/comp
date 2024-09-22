@@ -40,27 +40,19 @@ module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output
 			pc = 0;
 	end
 	
-	logic[31:0] out;
-	mem(pc, out);
+	logic[31:0] command;
+	logic[31:0] result;
+	mem(pc, command);
 	
-	initial
-		digs = 'b001;
-	
-	logic[3:0] dig_out;
-	
-	always @(posedge clk_fast)
-	begin
-		if (digs == 'b100)
-			digs = 'b001;
-		else
-			digs = digs << 1;
-		case (digs)
-			'b001: dig_out = out[3:0];
-			'b010: dig_out = out[7:4];
-			'b100: dig_out = out[11:8];
-		endcase
-	end
-	sevenseg(dig_out, segs);
+	logic[31:0] imm;
+	logic[31:0] rs1;
+	logic[2:0] func3;
+	assign imm = command[31:20];
+	registers(command[19:15], rs1);
+	assign func3 = command[14:12];
+	alu(func3, rs1, imm, result);
+
+	sevenseg(clk_fast, result, segs, digs);
 	
 	/*
 	parameter INC_COUNT = 32'd25000000;
