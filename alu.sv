@@ -13,6 +13,7 @@ module alu
 	begin
 		case (func3)
 			`FUNC3_ADD: result = operand_a + operand_b;
+			`FUNC3_OR: result = operand_a | operand_b;
 			default: result = 0;
 		endcase
 	end

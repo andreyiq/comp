@@ -46,19 +46,34 @@ module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output
 	
 	logic[31:0] imm;
 	logic[31:0] rs1_data;
+	logic[31:0] rs2_data;
+	logic[4:0] rs2_addr;
 	logic[4:0] rs1_addr;
 	logic[2:0] func3;
 	logic[4:0] rd_addr;
 	logic[6:0] opcode;
 	
 	extend(command[31:20], imm);
+	assign rs2_addr = command[24:20];
 	assign rs1_addr = command[19:15];
 	assign func3 = command[14:12];
 	assign rd_addr = command[11:7];
 	assign opcode = command[6:0];
+	
+	logic [31:0] src_a;
+	logic [31:0] src_b;
 
-	registers(sys_clk, 1, rd_addr, rs1_addr, result, rs1_data);
-	alu(func3, rs1_data, imm, result);
+	registers(sys_clk, 1, rd_addr, rs1_addr, rs2_addr, result, rs1_data, rs2_data);
+	
+	assign src_a = rs1_data;
+	
+	always_comb
+		if (opcode == `OPCODE_I)
+			src_b = imm;
+		else
+			src_b = rs2_data;
+	
+	alu(func3, src_a, src_b, result);
 
 	sevenseg(clk_fast, result, segs, digs);
 endmodule
