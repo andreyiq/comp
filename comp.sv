@@ -63,7 +63,7 @@ module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output
 	logic [31:0] src_a;
 	logic [31:0] src_b;
 
-	registers(sys_clk, 1, rd_addr, rs1_addr, rs2_addr, result, rs1_data, rs2_data);
+	registers(clk_slow, 1, rd_addr, rs1_addr, rs2_addr, result, rs1_data, rs2_data);
 	
 	assign src_a = rs1_data;
 	
@@ -73,7 +73,9 @@ module comp(input sys_clk, input sys_rst, input button, output[7:0] segs, output
 		else
 			src_b = rs2_data;
 	
-	alu(func3, src_a, src_b, result);
+	logic [2:0] alu_control;
+	aludec(func3, alu_control);
+	alu(alu_control, src_a, src_b, result);
 
-	sevenseg(clk_fast, result, segs, digs);
+	sevenseg(clk_fast, {src_a[7:0], rs2_data[7:0], result[7:0]}, segs, digs);
 endmodule
